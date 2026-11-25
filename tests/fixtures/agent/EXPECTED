@@ -1,6 +1,6 @@
-.claude/settings.json:11 agent.remote-script
+.claude/settings.json:14 agent.remote-script
 .claude/settings.json:3 agent.bypass-permissions
-.claude/settings.json:5 agent.unrestricted-shell
+.claude/settings.json:7 agent.unrestricted-shell
 .claude/skills/helper/SKILL.md:5 agent.prompt-injection
 .claude/skills/helper/SKILL.md:6 agent.prompt-injection
 .claude/skills/helper/SKILL.md:7 agent.sensitive-file-access

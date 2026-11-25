@@ -65,15 +65,6 @@ pub static RULES: &[Rule] = &[
         "Use the default or an accept-edits mode and allow specific commands instead of skipping all approvals."
     ),
     rule!(
-        "agent.unrestricted-shell",
-        High,
-        claude_settings,
-        r#""Bash(?:\(\*\)|\(:\*\))?""#,
-        None,
-        "Every shell command is pre-approved, so the agent can run anything without asking.",
-        "Allow specific commands, for example \"Bash(npm test:*)\"."
-    ),
-    rule!(
         "agent.remote-script",
         High,
         is_agent_file,
@@ -115,6 +106,11 @@ pub static RULES: &[Rule] = &[
 
 pub static STRUCTURED: &[(&str, Severity, &str)] = &[
     (
+        "agent.unrestricted-shell",
+        Severity::High,
+        "Every shell command is pre-approved, so the agent can run anything without asking.",
+    ),
+    (
         "agent.mcp-unpinned",
         Severity::Medium,
         "An MCP server is started from a package or image with no pinned version.",
@@ -148,7 +144,62 @@ pub fn structured(file: &FileInfo, text: &Text) -> Vec<Finding> {
             check_server(file, text, start, server, &mut out);
         }
     }
+    if claude_settings(file) {
+        check_claude_permissions(file, text, &json, &mut out);
+    }
     out
+}
+
+fn check_claude_permissions(file: &FileInfo, text: &Text, json: &Value, out: &mut Vec<Finding>) {
+    let Some(allow) = json
+        .get("permissions")
+        .and_then(|p| p.get("allow"))
+        .and_then(Value::as_array)
+    else {
+        return;
+    };
+    let perms_start = find_json_key(text.src, 0, "permissions").unwrap_or(0);
+    let mut cursor = find_json_key(text.src, perms_start, "allow").unwrap_or(perms_start);
+    for entry in allow.iter().filter_map(Value::as_str) {
+        if matches!(entry, "Bash" | "Bash(*)" | "Bash(:*)") {
+            let needle = format!("\"{entry}\"");
+            let at = match text.src[cursor..].find(&needle) {
+                Some(i) => {
+                    let pos = cursor + i;
+                    cursor = pos + needle.len();
+                    pos
+                }
+                None => cursor,
+            };
+            out.push(finding(
+                file,
+                text,
+                text.line_of(at),
+                Meta {
+                    id: "agent.unrestricted-shell",
+                    family: Family::Agent,
+                    severity: Severity::High,
+                    message: "Every shell command is pre-approved, so the agent can run anything without asking.",
+                    fix: "Allow specific commands, for example \"Bash(npm test:*)\".",
+                    secret: None,
+                },
+            ));
+        }
+    }
+}
+
+fn find_json_key(src: &str, start: usize, key: &str) -> Option<usize> {
+    let quoted = format!("\"{key}\"");
+    let mut pos = start;
+    while let Some(i) = src[pos..].find(&quoted) {
+        let key_pos = pos + i;
+        let after = key_pos + quoted.len();
+        if src[after..].trim_start().starts_with(':') {
+            return Some(key_pos);
+        }
+        pos = after;
+    }
+    None
 }
 
 fn check_server(
@@ -391,4 +442,46 @@ fn strip_jsonc(src: &str) -> String {
         }
     }
     out
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn unrestricted_shell_only_flags_permissions_allow() {
+        let file = FileInfo::new(".claude/settings.json");
+
+        let safe = r#"{
+  "permissions": {
+    "allow": ["Read", "Bash(npm test:*)"],
+    "deny": ["Bash", "Bash(*)"],
+    "ask": ["Bash(:*)"]
+  },
+  "hooks": {
+    "PreToolUse": [{ "matcher": "Bash", "hooks": [] }]
+  }
+}"#;
+        assert!(structured(&file, &Text::new(safe)).is_empty());
+
+        let unsafe_cfg = r#"{
+  "permissions": {
+    "deny": ["allow", "Bash"],
+    "allow": [
+      "Read",
+      "Bash",
+      "Bash(*)",
+      "Bash(:*)"
+    ]
+  }
+}"#;
+        let findings = structured(&file, &Text::new(unsafe_cfg));
+        let lines: Vec<usize> = findings.iter().map(|f| f.line).collect();
+        assert_eq!(lines, vec![6, 7, 8]);
+        assert!(
+            findings
+                .iter()
+                .all(|f| f.rule == "agent.unrestricted-shell")
+        );
+    }
 }
