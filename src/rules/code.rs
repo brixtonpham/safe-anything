@@ -48,7 +48,31 @@ macro_rules! kw {
         concat!(
             r"(?i:select\s",
             $ch,
-            r"+?\sfrom\b|insert\s+into\b|update\s+\w+\s+set\b|delete\s+from\b)"
+            r"+?\sfrom\b|insert\s+into\b|update\s+\w+(?:\.\w+)*\s+set\b|delete\s+from\b)"
+        )
+    };
+}
+
+macro_rules! go_verb {
+    () => {
+        r"%[+#\- 0]*(?:\d+|\*)?(?:\.(?:\d+|\*))?[sdvq]"
+    };
+}
+
+macro_rules! go_sqli_body {
+    ($ch:literal) => {
+        concat!(
+            "(?:",
+            kw!($ch),
+            $ch,
+            "*",
+            go_verb!(),
+            r"|(?i:select\s)",
+            $ch,
+            "*",
+            go_verb!(),
+            $ch,
+            r"*?\s(?i:from\b))"
         )
     };
 }
@@ -244,10 +268,10 @@ pub static RULES: &[Rule] = &[
         go,
         concat!(
             r#"fmt\.Sprintf\(\s*(?:"\s*"#,
-            kw!(r#"(?:[^"\\]|\\.)"#),
-            r#"(?:[^"\\]|\\.)*%[+#\- 0]*(?:\d+|\*)?(?:\.(?:\d+|\*))?[sdvq]|`\s*"#,
-            kw!("[^`]"),
-            r#"[^`]*%[+#\- 0]*(?:\d+|\*)?(?:\.(?:\d+|\*))?[sdvq])"#
+            go_sqli_body!(r#"(?:[^"\\]|\\.)"#),
+            r"|`\s*",
+            go_sqli_body!("[^`]"),
+            ")"
         ),
         None,
         SQLI_MSG,
@@ -591,9 +615,12 @@ mod tests {
             r#"q := fmt.Sprintf(`SELECT * FROM users WHERE name = '%s'`, name)"#,
             r#"q := fmt.Sprintf("INSERT INTO logs (msg) VALUES (%q)", msg)"#,
             r#"q := fmt.Sprintf("UPDATE users SET role = '%s' WHERE id = %d", role, id)"#,
+            r#"q := fmt.Sprintf("UPDATE public.users SET name = '%s'", name)"#,
             r#"q := fmt.Sprintf("DELETE FROM sessions WHERE token = %v", tok)"#,
             r#"q := fmt.Sprintf("SELECT * FROM \"users\" WHERE id = %s", id)"#,
             r#"q := fmt.Sprintf("SELECT 'active', id FROM users WHERE id = %s", id)"#,
+            r#"q := fmt.Sprintf("SELECT '%s' FROM users", name)"#,
+            r#"q := fmt.Sprintf(`SELECT %s FROM users`, col)"#,
             r#"q := fmt.Sprintf(`SELECT "id" FROM users WHERE name = '%s'`, name)"#,
         ] {
             assert!(sqli(s), "expected code.sql-injection for: {s}");
