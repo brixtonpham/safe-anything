@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Secrets: `secret.env-file` and `secret.env-example-value` now catch values followed by an inline
+  `#` comment (quoted or unquoted), leaving the comment out of the masked snippet. A `#` inside an
+  unquoted value with no space before it stays part of the value, and placeholders followed by a
+  comment (`your-key-here # set me`, `**************** # masked`) remain quiet.
 - Secrets: `secret.gitlab-token` also finds GitLab deploy tokens (`gldt-` and 20 letters, digits, `_` or `-`)
   and pipeline trigger tokens (`glptt-` and 40 lowercase hex).
 - Secrets: `secret.slack-token` also finds Slack app-level tokens (`xapp-1-A0123...-1234567890123-` and

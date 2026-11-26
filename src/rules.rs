@@ -272,6 +272,11 @@ pub struct Meta<'a> {
 
 pub fn finding(file: &FileInfo, text: &Text, line: usize, meta: Meta) -> Finding {
     let raw = text.line(line).trim();
+    let raw = if secrets::ENV_VALUE_RULES.contains(&meta.id) {
+        secrets::strip_env_comment(raw)
+    } else {
+        raw
+    };
     let snippet = match meta.secret {
         // A name-only rule's "secret" is the rest of the line after the name: hide all of it
         // (operators and quotes too, as they can be part of the value), only at the line's end.
