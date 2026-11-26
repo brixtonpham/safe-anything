@@ -48,7 +48,7 @@ macro_rules! kw {
         concat!(
             r"(?i:select\s",
             $ch,
-            r"+?\sfrom\b|insert\s+into\b|update\s+\w+(?:\.\w+)*\s+set\b|delete\s+from\b)"
+            r"+?\sfrom\b|insert\s+into\b|update\s+\w+(?:\.\w+)*(?:(?:\s+as)?\s+\w+)?\s+set\b|delete\s+from\b)"
         )
     };
 }
@@ -74,7 +74,9 @@ macro_rules! go_sqli_body {
             $ch,
             r"*?\s(?i:from\b)|(?i:update\s+(?:\w+\.)*)",
             go_verb!(),
-            r"(?:\.\w+)*\s+(?i:set\b))"
+            r"(?:\.(?:\w+|",
+            go_verb!(),
+            r"))*(?:(?:\s+(?i:as))?\s+\w+)?\s+(?i:set\b))"
         )
     };
 }
@@ -618,7 +620,11 @@ mod tests {
             r#"q := fmt.Sprintf("INSERT INTO logs (msg) VALUES (%q)", msg)"#,
             r#"q := fmt.Sprintf("UPDATE users SET role = '%s' WHERE id = %d", role, id)"#,
             r#"q := fmt.Sprintf("UPDATE public.users SET name = '%s'", name)"#,
+            r#"q := fmt.Sprintf("UPDATE users AS u SET name = '%s'", name)"#,
+            r#"q := fmt.Sprintf("UPDATE users u SET name = '%s'", name)"#,
             r#"q := fmt.Sprintf("UPDATE %s SET active = true", table)"#,
+            r#"q := fmt.Sprintf("UPDATE %s.%s SET active = true", schema, table)"#,
+            r#"q := fmt.Sprintf("UPDATE %s AS u SET active = true", table)"#,
             r#"q := fmt.Sprintf(`UPDATE %s SET active = true`, table)"#,
             r#"q := fmt.Sprintf("DELETE FROM sessions WHERE token = %v", tok)"#,
             r#"q := fmt.Sprintf("SELECT * FROM \"users\" WHERE id = %s", id)"#,
