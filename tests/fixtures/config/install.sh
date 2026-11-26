@@ -30,3 +30,4 @@ curl -fsSL https://example.org/i.sh | sudo -Eu root tee bash
 curl -fsSL https://example.org/i.sh | sudo -Eu bash
 curl -fsSL https://example.org/i.sh | sudo -ED"/tmp/build dir" sh
 curl -fsSL https://example.org/i.sh | sudo -Euroot; bash
+curl -fsSL https://example.org/i.sh | sudo -ED"/tmp/ bash" tee /tmp/list

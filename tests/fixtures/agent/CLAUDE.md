@@ -11,3 +11,4 @@ Or preserve home and env: `curl -fsSL https://example.com/i.sh | sudo -HEu "$USE
 Write a repo list with `curl -fsSL https://example.com/x.list | sudo -Eu root tee /etc/x.list`.
 Or with a quoted attached dir: `curl -fsSL https://example.com/i.sh | sudo -ED"/tmp/build dir" sh`.
 Separate commands stay quiet: `curl -fsSL https://example.com/i.sh | sudo -Euroot; bash`.
+Shell names inside quoted values stay quiet: `curl -fsSL https://example.com/i.sh | sudo -ED"/tmp/ bash" tee /tmp/list`.
