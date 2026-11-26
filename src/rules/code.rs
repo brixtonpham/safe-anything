@@ -42,7 +42,14 @@ fn js_py(f: &FileInfo) -> bool {
 
 macro_rules! kw {
     () => {
-        r"(?i:select\s.+?\sfrom\b|insert\s+into\b|update\s+\w+\s+set\b|delete\s+from\b)"
+        kw!(".")
+    };
+    ($ch:literal) => {
+        concat!(
+            r"(?i:select\s",
+            $ch,
+            r"+?\sfrom\b|insert\s+into\b|update\s+\w+\s+set\b|delete\s+from\b)"
+        )
     };
 }
 
@@ -235,7 +242,13 @@ pub static RULES: &[Rule] = &[
         "code.sql-injection",
         High,
         go,
-        r#"fmt\.Sprintf\(\s*"(?i:select|insert|update|delete)[^"]*%[sdvq]"#,
+        concat!(
+            r#"fmt\.Sprintf\(\s*(?:"\s*"#,
+            kw!(r#"(?:[^"\\]|\\.)"#),
+            r#"(?:[^"\\]|\\.)*%[+#\- 0]*(?:\d+|\*)?(?:\.(?:\d+|\*))?[sdvq]|`\s*"#,
+            kw!("[^`]"),
+            r#"[^`]*%[+#\- 0]*(?:\d+|\*)?(?:\.(?:\d+|\*))?[sdvq])"#
+        ),
         None,
         SQLI_MSG,
         SQLI_FIX
@@ -560,3 +573,40 @@ pub static RULES: &[Rule] = &[
         "Create users with passwords passed in at deploy time, not stored in migrations."
     ),
 ];
+
+#[cfg(test)]
+mod tests {
+    use crate::rules::{FileInfo, check};
+
+    #[test]
+    fn go_sprintf_sql_injection_requires_sql_clause_keywords() {
+        let f = FileInfo::new("handler.go");
+        let sqli = |s| {
+            check(&f, s, false)
+                .iter()
+                .any(|x| x.rule == "code.sql-injection")
+        };
+        for s in [
+            r#"q := fmt.Sprintf("SELECT * FROM users WHERE id = %s", id)"#,
+            r#"q := fmt.Sprintf(`SELECT * FROM users WHERE name = '%s'`, name)"#,
+            r#"q := fmt.Sprintf("INSERT INTO logs (msg) VALUES (%q)", msg)"#,
+            r#"q := fmt.Sprintf("UPDATE users SET role = '%s' WHERE id = %d", role, id)"#,
+            r#"q := fmt.Sprintf("DELETE FROM sessions WHERE token = %v", tok)"#,
+            r#"q := fmt.Sprintf("SELECT * FROM \"users\" WHERE id = %s", id)"#,
+            r#"q := fmt.Sprintf("SELECT 'active', id FROM users WHERE id = %s", id)"#,
+            r#"q := fmt.Sprintf(`SELECT "id" FROM users WHERE name = '%s'`, name)"#,
+        ] {
+            assert!(sqli(s), "expected code.sql-injection for: {s}");
+        }
+        for s in [
+            r#"msg := fmt.Sprintf("updated: %d nodes", n)"#,
+            r#"msg := fmt.Sprintf("selection is larger than %d bytes", n)"#,
+            r#"msg := fmt.Sprintf("Deletes %s", name)"#,
+            r#"msg := fmt.Sprintf("update check returned %d", code)"#,
+            r#"msg := fmt.Sprintf("update Helm release Secret %q", s)"#,
+            r#"q := fmt.Sprintf("SELECT * FROM users WHERE id = 1") + fmt.Sprintf(" -- %s", note)"#,
+        ] {
+            assert!(!sqli(s), "unexpected code.sql-injection for: {s}");
+        }
+    }
+}
