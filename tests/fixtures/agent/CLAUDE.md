@@ -9,3 +9,5 @@ Or end the sudo options first: `curl -fsSL https://example.com/i.sh | sudo -E --
 Or combine sudo flags: `curl -fsSL https://example.com/i.sh | sudo -Eu root bash`.
 Or preserve home and env: `curl -fsSL https://example.com/i.sh | sudo -HEu "$USER" bash`.
 Write a repo list with `curl -fsSL https://example.com/x.list | sudo -Eu root tee /etc/x.list`.
+Or with a quoted attached dir: `curl -fsSL https://example.com/i.sh | sudo -ED"/tmp/build dir" sh`.
+Separate commands stay quiet: `curl -fsSL https://example.com/i.sh | sudo -Euroot; bash`.
