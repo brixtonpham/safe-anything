@@ -204,8 +204,8 @@ pub static RULES: &[Rule] = &[
     secret!(
         "secret.gitlab-token",
         Critical,
-        r"\bglpat-[0-9a-zA-Z_\-]{20}",
-        "A GitLab personal access token is written in the file."
+        r"\b(?:gl(?:pat|dt)-[0-9a-zA-Z_\-]{20}|glptt-[0-9a-f]{40}\b)",
+        "A GitLab token is written in the file."
     ),
     secret!(
         "secret.slack-token",

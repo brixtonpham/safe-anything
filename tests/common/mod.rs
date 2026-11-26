@@ -26,6 +26,9 @@ pub fn fake(name: &str) -> String {
         "aws-secret-example" => [&body(30, MIXED), "EXAMPLE", "KEY"].concat(),
         "github" => ["gh", "p_", &body(36, MIXED)].concat(),
         "gitlab" => ["gl", "pat-", &body(20, MIXED)].concat(),
+        "gitlab-deploy" => ["gl", "dt-", &body(20, MIXED)].concat(),
+        "gitlab-trigger" => ["gl", "ptt-", &body(40, HEX)].concat(),
+        "gitlab-trigger-upper" => ["gl", "ptt-", &body(40, HEX).to_uppercase()].concat(),
         "github-pat" => ["github", "_pat_", &body(82, MIXED)].concat(),
         "slack" => [
             "xo",
