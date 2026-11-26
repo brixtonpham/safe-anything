@@ -72,7 +72,9 @@ macro_rules! go_sqli_body {
             "*",
             go_verb!(),
             $ch,
-            r"*?\s(?i:from\b))"
+            r"*?\s(?i:from\b)|(?i:update\s+(?:\w+\.)*)",
+            go_verb!(),
+            r"(?:\.\w+)*\s+(?i:set\b))"
         )
     };
 }
@@ -616,6 +618,8 @@ mod tests {
             r#"q := fmt.Sprintf("INSERT INTO logs (msg) VALUES (%q)", msg)"#,
             r#"q := fmt.Sprintf("UPDATE users SET role = '%s' WHERE id = %d", role, id)"#,
             r#"q := fmt.Sprintf("UPDATE public.users SET name = '%s'", name)"#,
+            r#"q := fmt.Sprintf("UPDATE %s SET active = true", table)"#,
+            r#"q := fmt.Sprintf(`UPDATE %s SET active = true`, table)"#,
             r#"q := fmt.Sprintf("DELETE FROM sessions WHERE token = %v", tok)"#,
             r#"q := fmt.Sprintf("SELECT * FROM \"users\" WHERE id = %s", id)"#,
             r#"q := fmt.Sprintf("SELECT 'active', id FROM users WHERE id = %s", id)"#,
