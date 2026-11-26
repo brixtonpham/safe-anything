@@ -20,3 +20,11 @@ bash -c "$(curl -H "Authorization: Bearer $(cat token)" https://example.org/i.sh
 bash -lc "$(curl -fsSL https://example.com/i.sh)"
 bash -e -c "$(curl -fsSL https://example.com/i.sh)"
 curl -fsSL https://example.org/i.sh | sudo -E -- bash
+curl -fsSL https://example.org/i.sh | sudo -Eu root bash
+curl -fsSL https://example.org/i.sh | sudo -HEu "$USER" bash
+curl -fsSL https://example.org/i.sh | sudo -Eu root tee /etc/x.list
+curl -fsSL https://example.org/i.sh | sudo -Euroot bash
+curl -fsSL https://example.org/i.sh | sudo -E -u root bash
+curl -fsSL https://example.org/i.sh | sudo -ED /tmp sh
+curl -fsSL https://example.org/i.sh | sudo -Eu root tee bash
+curl -fsSL https://example.org/i.sh | sudo -Eu bash
