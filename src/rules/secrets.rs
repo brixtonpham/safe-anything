@@ -433,7 +433,7 @@ mod tests {
 
     #[test]
     fn env_secret_line_does_not_cross_newlines() {
-        let s = ["Q7mZ2xK9", "pL4vR8tN3wB6yH1c"].concat();
+        let s = ["Fake0000", "Value0000", "Q7mZ"].concat();
         for (name, src) in [
             (".env.example", "API_KEY=\nNEXT_VAR=some_regular_value\n"),
             (".env", "API_SECRET=\nAPP_ENVIRONMENT=production\n"),
