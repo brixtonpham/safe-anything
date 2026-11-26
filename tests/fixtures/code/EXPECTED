@@ -48,6 +48,7 @@ api/views.py:21 code.unsafe-deserialization
 api/views.py:22 code.unsafe-deserialization
 api/views.py:25 code.unsafe-deserialization
 api/views.py:26 code.open-redirect
+api/views.py:28 code.sql-injection
 api/views.py:4 code.command-injection
 api/views.py:7 code.command-injection
 api/views.py:9 code.unsafe-deserialization
@@ -86,3 +87,4 @@ web/ignore.js:8 code.eval
 web/login.spec.ts:3 secret.aws-access-key
 web/page.vue:1 code.xss-v-html
 web/app.js:34 code.open-redirect
+web/app.js:36 code.sql-injection

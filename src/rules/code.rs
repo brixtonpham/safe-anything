@@ -266,7 +266,7 @@ pub static RULES: &[Rule] = &[
             r#"`\s*"#,
             kw!(),
             r#"[^`]*\$\{|["']\s*"#,
-            kw!(),
+            kw!(".", r"(?:\s|\\[nrt])"),
             r#"[^"']*["']\s*\+\s*[A-Za-z_$]"#
         ),
         None,
@@ -279,13 +279,13 @@ pub static RULES: &[Rule] = &[
         py,
         concat!(
             r#"\bf"\s*"#,
-            kw!(),
+            kw!(".", r"(?:\s|\\[nrt])"),
             r#"[^"]*\{|\bf'\s*"#,
-            kw!(),
+            kw!(".", r"(?:\s|\\[nrt])"),
             r#"[^']*\{|"\s*"#,
-            kw!(),
+            kw!(".", r"(?:\s|\\[nrt])"),
             r#"[^"]*"\s*(?:%\s*[\w(]|\+\s*[A-Za-z_]|\.format\()|'\s*"#,
-            kw!(),
+            kw!(".", r"(?:\s|\\[nrt])"),
             r#"[^']*'\s*(?:%\s*[\w(]|\+\s*[A-Za-z_]|\.format\()"#
         ),
         None,
@@ -676,6 +676,61 @@ mod tests {
             r#"q := fmt.Sprintf("SELECT * FROM users WHERE id = 1") + fmt.Sprintf(" -- %s", note)"#,
         ] {
             assert!(!sqli(s), "unexpected code.sql-injection for: {s}");
+        }
+    }
+
+    #[test]
+    fn js_and_python_sql_injection_match_escaped_whitespace() {
+        let js_file = FileInfo::new("app.js");
+        let py_file = FileInfo::new("views.py");
+        let sqli = |f: &FileInfo, s: &str| {
+            check(f, s, false)
+                .iter()
+                .any(|x| x.rule == "code.sql-injection")
+        };
+        for s in [
+            r#"db.query("SELECT id\nFROM users WHERE id = " + id);"#,
+            r#"db.query('SELECT id\tFROM users WHERE id = ' + id);"#,
+            r#"db.query("UPDATE users\nSET role = " + role);"#,
+            r#"db.query("DELETE\nFROM sessions WHERE id = " + id);"#,
+            r#"db.query("INSERT\nINTO logs VALUES (" + msg);"#,
+        ] {
+            assert!(sqli(&js_file, s), "expected JS code.sql-injection for: {s}");
+        }
+        for s in [
+            r#"const msg = "selected\n" + n + " files";"#,
+            r#"const msg = "selected\n" + n + " files from " + dir;"#,
+            r#"const msg = "inserted\n" + n + " rows";"#,
+        ] {
+            assert!(
+                !sqli(&js_file, s),
+                "unexpected JS code.sql-injection for: {s}"
+            );
+        }
+        for s in [
+            r#"cur.execute("SELECT id\nFROM users WHERE id = %s" % uid)"#,
+            r#"cur.execute('SELECT id\tFROM users WHERE id = %s' % uid)"#,
+            r#"cur.execute(f"SELECT id\nFROM users WHERE id = {uid}")"#,
+            r#"cur.execute(f'SELECT id\r\nFROM users WHERE id = {uid}')"#,
+            r#"cur.execute("UPDATE users\nSET name = '{}'".format(name))"#,
+            r#"cur.execute("DELETE\nFROM sessions WHERE token = " + tok)"#,
+            r#"cur.execute("INSERT\nINTO logs VALUES (%s)" % msg)"#,
+        ] {
+            assert!(
+                sqli(&py_file, s),
+                "expected Python code.sql-injection for: {s}"
+            );
+        }
+        for s in [
+            r#"msg = "selected\n%d files" % n"#,
+            r#"msg = "selected\n%d files from %s" % (n, dir)"#,
+            r#"msg = f"selected\n{n} files""#,
+            r#"msg = "inserted %d rows\ninto %s" % (n, table)"#,
+        ] {
+            assert!(
+                !sqli(&py_file, s),
+                "unexpected Python code.sql-injection for: {s}"
+            );
         }
     }
 }

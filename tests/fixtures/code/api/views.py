@@ -25,3 +25,5 @@ cfg = yaml.safe_load(stream)
 a = yaml.unsafe_load(payload); b = yaml.load(other, Loader=yaml.SafeLoader)
 return redirect(request.args.get("next"))
 return redirect("/home")
+cur.execute("SELECT id\nFROM users WHERE id = %s" % uid)
+msg = "selected\n%d files" % count

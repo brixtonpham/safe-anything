@@ -33,3 +33,5 @@ res.redirect(req.query.next);
 res.redirect('/home');
 res.redirect(301, req.query.next);
 res.redirect(301, '/home');
+db.query("SELECT id\nFROM users WHERE id = " + id);
+const msg = "selected\n" + count + " files";

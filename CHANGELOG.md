@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Code: the JavaScript and Python patterns in `code.sql-injection` now also match escaped
+  newlines, tabs and carriage returns (`\n`, `\t`, `\r`) inside quoted query strings
+  (`db.query("SELECT id\nFROM users WHERE id = " + id)`,
+  `cur.execute("SELECT id\nFROM users WHERE id = %s" % uid)`).
 - Code: the Go `fmt.Sprintf` pattern in `code.sql-injection` now uses the same SQL clause keyword
   check (`SELECT ... FROM`, `INSERT INTO`, `UPDATE ... SET`, `DELETE FROM`) as the other SQL
   injection rules and also matches raw backtick query strings and escaped newlines or tabs
