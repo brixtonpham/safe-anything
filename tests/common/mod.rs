@@ -137,6 +137,7 @@ pub fn fake(name: &str) -> String {
         "databricks" => ["da", "pi", &body(32, HEX)].concat(),
         "databricks-suffix" => ["da", "pi", &body(32, HEX), "-2"].concat(),
         "databricks-upper" => ["da", "pi", &body(32, HEX).to_uppercase()].concat(),
+        "dockerhub" => ["dckr", "_pat_", &body(26, MIXED), "-"].concat(),
         other => panic!("no fake value named {other}"),
     }
 }

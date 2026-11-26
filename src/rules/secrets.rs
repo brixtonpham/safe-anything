@@ -311,6 +311,12 @@ pub static RULES: &[Rule] = &[
         "A RubyGems API key is written in the file."
     ),
     secret!(
+        "secret.dockerhub-token",
+        Critical,
+        r"\b(dckr_pat_[A-Za-z0-9_\-]{27})(?:[^A-Za-z0-9_\-]|\z)",
+        "A Docker Hub personal access token is written in the file."
+    ),
+    secret!(
         "secret.huggingface-token",
         Critical,
         r"\bhf_[A-Za-z]{34}\b",
