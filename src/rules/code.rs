@@ -42,13 +42,28 @@ fn js_py(f: &FileInfo) -> bool {
 
 macro_rules! kw {
     () => {
-        kw!(".")
+        kw!(".", r"\s")
     };
-    ($ch:literal) => {
+    ($ch:literal, $ws:literal) => {
         concat!(
-            r"(?i:select\s",
+            r"(?i:select",
+            $ws,
             $ch,
-            r"+?\sfrom\b|insert\s+into\b|update\s+\w+(?:\.\w+)*(?:(?:\s+as)?\s+\w+)?\s+set\b|delete\s+from\b)"
+            "+?",
+            $ws,
+            r"from\b|insert",
+            $ws,
+            r"+into\b|update",
+            $ws,
+            r"+\w+(?:\.\w+)*(?:(?:",
+            $ws,
+            r"+as)?",
+            $ws,
+            r"+\w+)?",
+            $ws,
+            r"+set\b|delete",
+            $ws,
+            r"+from\b)"
         )
     };
 }
@@ -60,23 +75,34 @@ macro_rules! go_verb {
 }
 
 macro_rules! go_sqli_body {
-    ($ch:literal) => {
+    ($ch:literal, $ws:literal) => {
         concat!(
             "(?:",
-            kw!($ch),
+            kw!($ch, $ws),
             $ch,
             "*",
             go_verb!(),
-            r"|(?i:select\s)",
+            r"|(?i:select)",
+            $ws,
             $ch,
             "*",
             go_verb!(),
             $ch,
-            r"*?\s(?i:from\b)|(?i:update\s+(?:\w+\.)*)",
+            "*?",
+            $ws,
+            r"(?i:from\b)|(?i:update)",
+            $ws,
+            r"+(?:\w+\.)*",
             go_verb!(),
             r"(?:\.(?:\w+|",
             go_verb!(),
-            r"))*(?:(?:\s+(?i:as))?\s+\w+)?\s+(?i:set\b))"
+            r"))*(?:(?:",
+            $ws,
+            r"+(?i:as))?",
+            $ws,
+            r"+\w+)?",
+            $ws,
+            r"+(?i:set\b))"
         )
     };
 }
@@ -272,9 +298,9 @@ pub static RULES: &[Rule] = &[
         go,
         concat!(
             r#"fmt\.Sprintf\(\s*(?:"\s*"#,
-            go_sqli_body!(r#"(?:[^"\\]|\\.)"#),
+            go_sqli_body!(r#"(?:[^"\\]|\\.)"#, r"(?:\s|\\[nrt])"),
             r"|`\s*",
-            go_sqli_body!("[^`]"),
+            go_sqli_body!("[^`]", r"\s"),
             ")"
         ),
         None,
@@ -632,6 +658,10 @@ mod tests {
             r#"q := fmt.Sprintf("SELECT '%s' FROM users", name)"#,
             r#"q := fmt.Sprintf(`SELECT %s FROM users`, col)"#,
             r#"q := fmt.Sprintf(`SELECT "id" FROM users WHERE name = '%s'`, name)"#,
+            r#"q := fmt.Sprintf("SELECT id\nFROM users\nWHERE id = %s", id)"#,
+            r#"q := fmt.Sprintf("UPDATE users\n\tSET role = '%s'\nWHERE id = %d", role, id)"#,
+            r#"q := fmt.Sprintf("DELETE\nFROM sessions WHERE token = '%s'", tok)"#,
+            r#"q := fmt.Sprintf("SELECT name FROM users WHERE email = '%s' AND active = 1", email)"#,
         ] {
             assert!(sqli(s), "expected code.sql-injection for: {s}");
         }
@@ -641,6 +671,8 @@ mod tests {
             r#"msg := fmt.Sprintf("Deletes %s", name)"#,
             r#"msg := fmt.Sprintf("update check returned %d", code)"#,
             r#"msg := fmt.Sprintf("update Helm release Secret %q", s)"#,
+            r#"msg := fmt.Sprintf("selected\n%d files from %s", n, dir)"#,
+            r#"msg := fmt.Sprintf("inserted %d rows\ninto %s", n, table)"#,
             r#"q := fmt.Sprintf("SELECT * FROM users WHERE id = 1") + fmt.Sprintf(" -- %s", note)"#,
         ] {
             assert!(!sqli(s), "unexpected code.sql-injection for: {s}");

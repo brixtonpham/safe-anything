@@ -4,9 +4,11 @@
 
 - Code: the Go `fmt.Sprintf` pattern in `code.sql-injection` now uses the same SQL clause keyword
   check (`SELECT ... FROM`, `INSERT INTO`, `UPDATE ... SET`, `DELETE FROM`) as the other SQL
-  injection rules and also matches raw backtick query strings, so ordinary messages starting with
-  words like `"updated: %d nodes"`, `"selection is larger than %d bytes"`, `"Deletes %s"` or
-  `"update check returned %d"` are no longer reported.
+  injection rules and also matches raw backtick query strings and escaped newlines or tabs
+  (`"SELECT id\nFROM users WHERE id = %s"`), so ordinary messages starting with words like
+  `"updated: %d nodes"`, `"selection is larger than %d bytes"`, `"Deletes %s"` or
+  `"update check returned %d"` are no longer reported. `UPDATE` in every SQL injection rule now
+  also matches schema-qualified tables and aliases (`UPDATE public.users u SET`).
 - Secrets: new rule `secret.heroku-key` (critical) for Heroku API keys (`HRKU-AA` followed by 58
   letters, digits, `_` or `-`).
 - Secrets: new rule `secret.notion-token` (critical) for Notion integration tokens (`ntn_`
