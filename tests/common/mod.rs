@@ -38,6 +38,15 @@ pub fn fake(name: &str) -> String {
             &body(24, MIXED),
         ]
         .concat(),
+        "slack-app" => [
+            "xa",
+            "pp-1-",
+            "A0",
+            &body(9, UPPER),
+            "-4815162342123-",
+            &body(64, HEX),
+        ]
+        .concat(),
         "slack-webhook" => [
             "https://hooks.",
             "slack.com/services/",
@@ -123,6 +132,8 @@ pub fn fake(name: &str) -> String {
         "supabase" => ["sb", "p_", &body(40, HEX)].concat(),
         "grafana" => ["gl", "sa_", &body(32, MIXED), "_", &body(8, HEX)].concat(),
         "doppler" => ["dp", ".pt.", &body(43, MIXED)].concat(),
+        "rubygems" => ["ruby", "gems_", &body(48, HEX)].concat(),
+        "rubygems-upper" => ["ruby", "gems_", &body(48, HEX).to_uppercase()].concat(),
         other => panic!("no fake value named {other}"),
     }
 }
