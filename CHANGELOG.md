@@ -36,6 +36,7 @@
   lowercase hex), `secret.supabase-token` Supabase access tokens (`sbp_` and 40 lowercase hex),
   `secret.grafana-token` Grafana service account tokens (`glsa_`, 32 letters or digits, `_`, 8 hex) and
   `secret.doppler-token` Doppler personal tokens (`dp.pt.` and 43 letters or digits).
+- Secrets: new rule `secret.rubygems-token` (critical) for RubyGems API keys (`rubygems_` followed by 48 lowercase hex characters).
 
 ## 1.1.0 (2026-11-25)
 

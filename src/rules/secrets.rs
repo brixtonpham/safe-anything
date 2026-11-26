@@ -260,6 +260,12 @@ pub static RULES: &[Rule] = &[
         "A PyPI upload token is written in the file."
     ),
     secret!(
+        "secret.rubygems-token",
+        Critical,
+        r"\brubygems_[0-9a-f]{48}\b",
+        "A RubyGems API key is written in the file."
+    ),
+    secret!(
         "secret.huggingface-token",
         Critical,
         r"\bhf_[A-Za-z]{34}\b",
