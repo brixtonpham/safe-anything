@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Code: `code.sql-injection` now reports a Go query concatenated inside `db.Query`, `QueryRow` or
+  `Exec` with an escaped newline, tab or carriage return before the next keyword
+  (`db.Query("SELECT id\nFROM users WHERE id = " + id)`), as the `fmt.Sprintf` form already did.
 - Code: `code.sql-injection` now reports a Ruby query with an escaped newline, tab or carriage
   return before the next keyword (`"SELECT id\nFROM users WHERE id = #{id}"`).
 - Code: `code.sql-injection` now reports a PHP query with an escaped newline, tab or carriage
