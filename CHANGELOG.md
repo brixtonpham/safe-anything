@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Config: `config.remote-script` now skips `#` comment lines in shell scripts, PowerShell scripts,
+  Dockerfiles, and Makefiles, not only in GitHub Actions workflows.
 - Secrets: `secret.env-file` and `secret.env-example-value` no longer report file paths starting
   with `/`, `./`, `../` or `~/` on variables ending in `_FILE`, `_PATH` or `_DIR` or named `PWD`
   (`POSTGRES_PASSWORD_FILE=/run/secrets/postgres_password`, `PRIVATE_KEY_PATH=./certs/server.key`,
