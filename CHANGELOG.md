@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Code: `code.sql-injection` now reports a Ruby query with an escaped newline, tab or carriage
+  return before the next keyword (`"SELECT id\nFROM users WHERE id = #{id}"`).
 - Code: `code.sql-injection` now reports a PHP query with an escaped newline, tab or carriage
   return before the next keyword (`"SELECT id\nFROM users WHERE id = $id"`), in the interpolated
   and the concatenated form.
