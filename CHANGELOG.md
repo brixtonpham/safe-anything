@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Secrets: `secret.env-file` and `secret.env-example-value` no longer report file paths starting
+  with `/`, `./`, `../` or `~/` on variables ending in `_FILE`, `_PATH` or `_DIR` or named `PWD`
+  (`POSTGRES_PASSWORD_FILE=/run/secrets/postgres_password`, `PRIVATE_KEY_PATH=./certs/server.key`,
+  `PWD=/srv/app/releases/current`), while still reporting non-path values and `/`-prefixed secrets
+  on other secret variables.
 - Secrets: `secret.hardcoded-password` no longer lets a placeholder-like value elsewhere on the
   line hide a real password. The placeholder check now only looks at the value right after the
   matched name, so `connect(user="testuser", password="...")` and
