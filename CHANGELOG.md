@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Code: `code.sql-injection` now reports Kotlin string templates in a query
+  (`"SELECT id FROM users WHERE id = $id"`, `${id}`), in `.kt` and `.kts` files only. A positional
+  placeholder (`$1`) and an escaped `\$` are not templates and stay quiet.
 - Code: `code.sql-injection` now reports a Go query concatenated inside `db.Query`, `QueryRow` or
   `Exec` with an escaped newline, tab or carriage return before the next keyword
   (`db.Query("SELECT id\nFROM users WHERE id = " + id)`), as the `fmt.Sprintf` form already did.
