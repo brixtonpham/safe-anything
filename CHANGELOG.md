@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Code: `code.sql-injection` now reports a PHP query with an escaped newline, tab or carriage
+  return before the next keyword (`"SELECT id\nFROM users WHERE id = $id"`), in the interpolated
+  and the concatenated form.
 - Code: `code.sql-injection` now reports a C# interpolated query with an escaped newline, tab or
   carriage return before the next keyword (`$"SELECT Id\nFROM Users WHERE Id = {id}"`), as the
   concatenation form already did.
