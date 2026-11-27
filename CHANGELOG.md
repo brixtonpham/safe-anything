@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Dependencies: a binary `bun.lockb` (bun before 1.2) is now named in the report
+  (`Not checked, binary lockfile: bun.lockb. Run bun install --save-text-lockfile to write
+  bun.lock.`). It used to be skipped without a word, which read like a clean result.
 - Secrets: `secret.openrouter-key` now reports a key that comes right after an escaped newline,
   tab or carriage return in a quoted string (`"line\nsk-or-v1-..."`).
 - Code: `code.sql-injection` now reports Kotlin string templates in a query
