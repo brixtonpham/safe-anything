@@ -97,7 +97,7 @@ fn env_example(f: &FileInfo) -> bool {
 
 const ENV_SECRET_LINE: &str = concat!(
     r"(?m)^[ \t]*(?:export[ \t]+)?",
-    r"(?:[A-Za-z0-9_]*(?i:secret|token|password|passwd|api_?key|private_?key|access_?key|auth|credential)[A-Za-z0-9_]*|(?:[A-Za-z0-9_]+_)?(?i:pass|pwd)(?:_[A-Za-z0-9_]+)?)",
+    r"(?:[A-Za-z0-9_]*(?i:secret|token|password|passwd|api_?key|private_?key|access_?key|auth|credential)[A-Za-z0-9_]*|(?:[A-Za-z0-9_]*_)?(?i:pass|pwd)(?:_[A-Za-z0-9_]*)?)",
     r"[ \t]*=[ \t]*(?:",
     r#""([A-Za-z0-9+/_.=!@#$%^&*\-]{16,})"[ \t]*(?:#[^\r\n]*)?"#,
     r#"|'([A-Za-z0-9+/_.=!@#$%^&*\-]{16,})'[ \t]*(?:#[^\r\n]*)?"#,
@@ -799,6 +799,8 @@ mod tests {
                 "MYSQL_PWD",
                 "PASS",
                 "PWD",
+                "_PASS",
+                "PWD_",
             ] {
                 let src = format!("{var}={s}\n");
                 let found: Vec<_> = check(&FileInfo::new(name), &src, false)
