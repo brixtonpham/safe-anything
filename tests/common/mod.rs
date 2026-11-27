@@ -129,6 +129,7 @@ pub fn fake(name: &str) -> String {
         "digitalocean-token" => ["do", "p_v1_", &body(64, HEX)].concat(),
         "twilio" => ["S", "K", &body(32, HEX)].concat(),
         "linear" => ["lin", "_api_", &body(40, MIXED)].concat(),
+        "prefect" => ["pn", "u_", &body(36, MIXED)].concat(),
         "postman" => ["PM", "AK-", &body(24, HEX), "-", &body(34, HEX)].concat(),
         "postman-upper" => ["PM", "AK-", &body(24, HEX), "-", &body(34, HEX)]
             .concat()

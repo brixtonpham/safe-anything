@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Secrets: new rule `secret.prefect-api-key` (critical) for Prefect API keys (`pnu_` followed by 36
+  letters and digits).
 - Report: the summary line says `Scanned 1 file` and `1 package checked against OSV.dev` for a
   count of one; other counts stay plural.
 - Code: the JavaScript and Python patterns in `code.sql-injection` now also match escaped
