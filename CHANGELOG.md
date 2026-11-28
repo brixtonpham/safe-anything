@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Code: `code.sql-injection` now reports Scala `s` and `f` interpolations in a query
+  (`s"SELECT id FROM users WHERE id = $id"`, `${id}`), in `.scala` and `.sc` files only. The
+  `sql"..."` interpolator (Slick, doobie), which binds its holes as parameters, and an escaped
+  `\$` stay quiet.
 - Secrets: `secret.linear-api-key` now reports a key that comes right after an escaped newline,
   tab or carriage return in a quoted string (`"line\nlin_api_..."`).
 - Secrets: `secret.prefect-api-key` now reports a key that comes right after an escaped newline,
