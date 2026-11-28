@@ -89,6 +89,7 @@
     "mapped": { "type": "http", "url": "http://[::ffff:203.0.113.5]:8080/mcp" },
     "upper": { "type": "http", "url": "HTTP://203.0.113.5/mcp" },
     "local-v6": { "type": "http", "url": "http://[::1]:8080/mcp" },
+    "local-v6-expanded": { "type": "http", "url": "http://[0:0:0:0:0:0:0:1]:8080/mcp" },
     "local-upper": { "type": "http", "url": "http://LOCALHOST:3000/mcp" },
     "ws-remote": { "url": "ws://mcp.acme-tools.io/ws" },
     "ws-local": { "url": "ws://localhost:3000/ws" },

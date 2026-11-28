@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 use std::collections::HashMap;
+use std::net::Ipv6Addr;
 
 use serde_json::Value;
 
@@ -459,7 +460,12 @@ fn is_local_authority(authority: &str) -> bool {
         }
         _ => hostport.split(':').next().unwrap_or(""),
     };
-    host.eq_ignore_ascii_case("localhost") || matches!(host, "127.0.0.1" | "[::1]")
+    let ipv6_loopback = host
+        .strip_prefix('[')
+        .and_then(|s| s.strip_suffix(']'))
+        .and_then(|ip| ip.parse::<Ipv6Addr>().ok())
+        .is_some_and(|ip| ip.is_loopback());
+    host.eq_ignore_ascii_case("localhost") || host == "127.0.0.1" || ipv6_loopback
 }
 
 /// Whether a value points at a credential kept elsewhere instead of holding one. After the auth
@@ -1191,8 +1197,11 @@ mod tests {
     "ipv6-trailing": { "url": "http://[::1]evil.example/mcp" },
     "backslash-whatwg": { "url": "http://mcp.example.net\\@localhost/mcp" },
     "backslash-rfc": { "url": "http://localhost\\@mcp.example.net/mcp" },
+    "ipv4-mapped-loopback": { "url": "http://[::ffff:127.0.0.1]:8080/mcp" },
     "local-upper": { "httpUrl": "http://LOCALHOST:3000/mcp" },
     "local-query": { "url": "http://localhost?debug=1" },
+    "local-v6-expanded": { "url": "http://[0:0:0:0:0:0:0:1]:8080/mcp" },
+    "local-v6-padded": { "url": "http://[0000::0001]:8080/mcp" },
     "ws-local": { "url": "ws://localhost:3000/ws" },
     "ws-local-v4": { "url": "ws://127.0.0.1:3000/ws" },
     "ws-local-v6": { "url": "ws://[::1]:3000/ws" },
@@ -1204,7 +1213,7 @@ mod tests {
         let findings = structured(&gemini, &Text::new(cfg));
         let mut lines: Vec<usize> = findings.iter().map(|(f, _)| f.line).collect();
         lines.sort_unstable();
-        assert_eq!(lines, vec![3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+        assert_eq!(lines, vec![3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]);
         assert!(
             findings
                 .iter()
