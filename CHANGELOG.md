@@ -4,6 +4,8 @@
 
 - Secrets: `secret.linear-api-key` now reports a key that comes right after an escaped newline,
   tab or carriage return in a quoted string (`"line\nlin_api_..."`).
+- Secrets: `secret.prefect-api-key` now reports a key that comes right after an escaped newline,
+  tab or carriage return in a quoted string (`"line\npnu_..."`).
 - Secrets: `secret.sentry-token` now reports a token that comes right after an escaped newline,
   tab or carriage return in a quoted string (`"line\nsntryu_..."`), as the OpenRouter and New
   Relic rules already did.

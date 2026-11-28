@@ -428,7 +428,7 @@ pub static RULES: &[Rule] = &[
     secret!(
         "secret.prefect-api-key",
         Critical,
-        r"\bpnu_[A-Za-z0-9]{36}\b",
+        r"(?:\\[nrt]|\b)(pnu_[A-Za-z0-9]{36})\b",
         "A Prefect API key is written in the file."
     ),
     secret!(
