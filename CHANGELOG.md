@@ -6,6 +6,30 @@
   WebSocket (`ws://`) URLs, strips RFC 3986 userinfo (`user:pass@`) before checking the host so
   URLs like `http://localhost:pass@evil.example` and `http://[::1]@evil.example` do not look local,
   and treats `localhost` case-insensitively and before `?` or `#`.
+- Config: `config.remote-script` now reports a download piped into a shell that is named by its
+  path or started through `env` (`| /bin/bash`, `| /usr/bin/env bash`, `| env sh`), including
+  `sudo /bin/bash`.
+- Config: `config.remote-script` now reports process substitution into a shell
+  (`bash <(curl ...)`, `source <(curl ...)`, `. <(wget ...)`), while `diff <(curl ...)`,
+  `cat <(curl ...)` and `bash <(cat ...)` stay quiet.
+- Config: `config.remote-script` now reports `iex (irm ...)`,
+  `Invoke-Expression (Invoke-RestMethod ...)` and
+  `iex ((New-Object System.Net.WebClient).DownloadString(...))`, while
+  `iex (Get-Content ...)` stays quiet.
+- Code: `code.sql-injection` now reports Scala `s` and `f` interpolations in a query
+  (`s"SELECT id FROM users WHERE id = $id"`, `${id}`), in `.scala` and `.sc` files only. The
+  `sql"..."` interpolator (Slick, doobie), which binds its holes as parameters, and an escaped
+  `\$` stay quiet.
+- Secrets: `secret.linear-api-key` now reports a key that comes right after an escaped newline,
+  tab or carriage return in a quoted string (`"line\nlin_api_..."`).
+- Secrets: `secret.prefect-api-key` now reports a key that comes right after an escaped newline,
+  tab or carriage return in a quoted string (`"line\npnu_..."`).
+- Secrets: `secret.sentry-token` now reports a token that comes right after an escaped newline,
+  tab or carriage return in a quoted string (`"line\nsntryu_..."`), as the OpenRouter and New
+  Relic rules already did.
+- Dependencies: a binary `bun.lockb` is no longer named when a text `bun.lock` sits beside it in
+  the same folder; the text lockfile was already read, so the old binary one is not an unchecked
+  dependency.
 - Dependencies: a binary `bun.lockb` (bun before 1.2) is now named in the report
   (`Not checked, binary lockfile: bun.lockb. Run bun install --save-text-lockfile to write
   bun.lock.`). It used to be skipped without a word, which read like a clean result.
