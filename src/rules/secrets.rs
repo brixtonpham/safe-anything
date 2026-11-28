@@ -422,7 +422,7 @@ pub static RULES: &[Rule] = &[
     secret!(
         "secret.linear-api-key",
         Critical,
-        r"\blin_api_[A-Za-z0-9]{40}\b",
+        r"(?:\\[nrt]|\b)(lin_api_[A-Za-z0-9]{40})\b",
         "A Linear API key is written in the file."
     ),
     secret!(
