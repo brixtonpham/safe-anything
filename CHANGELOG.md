@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Secrets: `secret.sentry-token` now reports a token that comes right after an escaped newline,
+  tab or carriage return in a quoted string (`"line\nsntryu_..."`), as the OpenRouter and New
+  Relic rules already did.
 - Dependencies: a binary `bun.lockb` is no longer named when a text `bun.lock` sits beside it in
   the same folder; the text lockfile was already read, so the old binary one is not an unchecked
   dependency.
