@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Agent: `agent.mcp-insecure-url` now also checks Gemini CLI's `httpUrl` field and plain
+  WebSocket (`ws://`) URLs, strips RFC 3986 userinfo (`user:pass@`) before checking the host so
+  URLs like `http://localhost:pass@evil.example` and `http://[::1]@evil.example` do not look local,
+  and treats `localhost` case-insensitively and before `?` or `#`.
 - Dependencies: a binary `bun.lockb` (bun before 1.2) is now named in the report
   (`Not checked, binary lockfile: bun.lockb. Run bun install --save-text-lockfile to write
   bun.lock.`). It used to be skipped without a word, which read like a clean result.
