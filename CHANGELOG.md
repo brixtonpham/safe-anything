@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- Config: `config.remote-script` now reports a download piped into a shell that is named by its
+  path or started through `env` (`| /bin/bash`, `| /usr/bin/env bash`, `| env sh`), including
+  `sudo /bin/bash`.
+- Config: `config.remote-script` now reports process substitution into a shell
+  (`bash <(curl ...)`, `source <(curl ...)`, `. <(wget ...)`), while `diff <(curl ...)`,
+  `cat <(curl ...)` and `bash <(cat ...)` stay quiet.
+- Config: `config.remote-script` now reports `iex (irm ...)`,
+  `Invoke-Expression (Invoke-RestMethod ...)` and
+  `iex ((New-Object System.Net.WebClient).DownloadString(...))`, while
+  `iex (Get-Content ...)` stays quiet.
 - Code: `code.sql-injection` now reports Scala `s` and `f` interpolations in a query
   (`s"SELECT id FROM users WHERE id = $id"`, `${id}`), in `.scala` and `.sc` files only. The
   `sql"..."` interpolator (Slick, doobie), which binds its holes as parameters, and an escaped
