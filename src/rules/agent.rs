@@ -424,9 +424,10 @@ fn check_server(
 }
 
 /// Returns `"http"` or `"ws"` when `url` uses plain `http://` or `ws://` for a host other than
-/// `localhost`, `127.0.0.1` or `[::1]`. Strips RFC 3986 authority userinfo (`user:pass@`) before
-/// reading the host so `http://localhost:pass@evil.example` and `http://[::1]@evil.example` do not
-/// look local.
+/// `localhost`, `127.0.0.1` or `[::1]`. Strips RFC 3986 authority userinfo (`user:pass@`) and
+/// requires both RFC 3986 (`/`, `?`, `#`) and WHATWG (`/` , `\`, `?`, `#`) authority boundaries to
+/// resolve to a local host, so `http://localhost:pass@evil.example`, `http://[::1]@evil.example`,
+/// `http://evil.example\@localhost/mcp` and `http://localhost\@evil.example/mcp` do not look local.
 fn insecure_remote_scheme(url: &str) -> Option<&'static str> {
     let (scheme, rest) = if let Some(rest) = url
         .get(..7)
@@ -441,7 +442,13 @@ fn insecure_remote_scheme(url: &str) -> Option<&'static str> {
             .map(|_| &url[5..])?;
         ("ws", rest)
     };
-    let authority = rest.split(['/', '?', '#']).next().unwrap_or("");
+    let authority_rfc = rest.split(['/', '?', '#']).next().unwrap_or("");
+    let authority_whatwg = rest.split(['/', '\\', '?', '#']).next().unwrap_or("");
+    let local = is_local_authority(authority_rfc) && is_local_authority(authority_whatwg);
+    (!local).then_some(scheme)
+}
+
+fn is_local_authority(authority: &str) -> bool {
     let hostport = authority.rsplit('@').next().unwrap_or(authority);
     let host = match hostport.find(']') {
         Some(end)
@@ -452,8 +459,7 @@ fn insecure_remote_scheme(url: &str) -> Option<&'static str> {
         }
         _ => hostport.split(':').next().unwrap_or(""),
     };
-    let local = host.eq_ignore_ascii_case("localhost") || matches!(host, "127.0.0.1" | "[::1]");
-    (!local).then_some(scheme)
+    host.eq_ignore_ascii_case("localhost") || matches!(host, "127.0.0.1" | "[::1]")
 }
 
 /// Whether a value points at a credential kept elsewhere instead of holding one. After the auth
@@ -1183,6 +1189,8 @@ mod tests {
     "userinfo-ipv4": { "url": "http://127.0.0.1:secret@mcp.example.net/mcp" },
     "userinfo-ipv6": { "url": "http://[::1]@mcp.example.net/mcp" },
     "ipv6-trailing": { "url": "http://[::1]evil.example/mcp" },
+    "backslash-whatwg": { "url": "http://mcp.example.net\\@localhost/mcp" },
+    "backslash-rfc": { "url": "http://localhost\\@mcp.example.net/mcp" },
     "local-upper": { "httpUrl": "http://LOCALHOST:3000/mcp" },
     "local-query": { "url": "http://localhost?debug=1" },
     "ws-local": { "url": "ws://localhost:3000/ws" },
@@ -1196,7 +1204,7 @@ mod tests {
         let findings = structured(&gemini, &Text::new(cfg));
         let mut lines: Vec<usize> = findings.iter().map(|(f, _)| f.line).collect();
         lines.sort_unstable();
-        assert_eq!(lines, vec![3, 4, 5, 6, 7, 8, 9, 10]);
+        assert_eq!(lines, vec![3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
         assert!(
             findings
                 .iter()
